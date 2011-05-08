@@ -12,7 +12,7 @@
  *  NJC 07/05/11  
  *
  * TODO  
- *	Automate local timezone, from link in /etc/localtime
+ *	Automate local timezone, from link in /etc/localtime.
  *	Do error checking on input timezones, perhaps by iterating through files
  *	in /usr/share/zoneinfo to check on a match with a filename with the input timezone.
 */
@@ -20,6 +20,10 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <regex.h>
+
+#include "timezones.h"
 
 /* alternative to hard-coding local timezone is to use readlink from unistd.h
 #include <unistd.h>
@@ -35,6 +39,47 @@ readlink()
 #define OVERWRITE 1
 #define BUFLEN 100
 
+extern char const * const timezones[];
+
+/*
+ * Check a timezone for validity, displaying a list of possible candidates if not found.
+ * In that case, the function exits the program since no further progress is possible.
+ *
+ */
+void
+find_timezone(char * tz) {
+    int i;
+    int found = 0;
+    char buf[BUFLEN];
+    regex_t compiled;
+    // number of elements in an array of strings: sizeof(array)/sizeof*(array)
+    for (i=0; i < sizeof(timezones)/sizeof*(timezones)  ; i++) {
+	if (strcmp(timezones[i], tz) == 0) {
+	    return;
+	}
+    }
+    // only get to here is timezone was not found.
+    strcpy(buf, tz);
+    strcat(buf, " timezone not found.  Possible candidates:");
+    puts(buf);
+    if (regcomp(&compiled, tz, REG_ICASE) != 0) {
+	puts("Reg ex compilation failed\n") ;
+	exit(-1);
+    }
+    for (i = 0 ; i < 500 ; i++ ) {
+	// list possible timezones
+	if (regexec(&compiled, timezones[i], 0, NULL, 0) == 0) {
+	    found = 1;
+	    puts(timezones[i]);
+	}
+    }
+    if (!found) {
+	puts("No candidates found. Try using a shorter string or a simple regex.");
+    }
+    puts("Finished.");
+    exit(1);
+}
+
 
 int main (int argc, char *argv[])
 {
@@ -46,6 +91,8 @@ int main (int argc, char *argv[])
 
     mytm.tm_isdst = -1;
     if (argc > 2) {
+	find_timezone(argv[1]);
+	find_timezone(argv[3]);
 	setenv(tz, argv[1], OVERWRITE);
 	tzset();
 	strptime(argv[2], TIMEFMTIN , &mytm);
@@ -53,6 +100,7 @@ int main (int argc, char *argv[])
 	setenv(tz, argv[3], OVERWRITE);
     } 
     else {
+	find_timezone(argv[1]);
 	time(&mytime_t);	// localtime on this machine
 	setenv(tz, argv[1], OVERWRITE);
     }
