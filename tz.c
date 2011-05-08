@@ -62,8 +62,8 @@ find_timezone(char * tz) {
     }
     // only get to here is timezone was not found.
     buf[0] = '\n'; buf[1] = '\0';
-    strcat(buf, tz);
-    strcat(buf, " timezone not found.  Possible candidates:");
+    strlcat(buf, tz, BUFLEN);
+    strlcat(buf, " timezone not found.  Possible candidates:", BUFLEN);
     puts(buf);
     if (regcomp(&compiled, tz, REG_ICASE) != 0) {
 	puts("Reg ex compilation failed\n") ;
@@ -91,6 +91,11 @@ int main (int argc, char *argv[])
     char const * const tz = "TZ";
 
     mytm.tm_isdst = -1;
+
+    if (argc <= 1) {
+	puts("\nNeed at least one timezone.\n");
+	exit(1);
+    }
     if (argc > 2) {
 	find_timezone(argv[1]);
 	find_timezone(argv[3]);
