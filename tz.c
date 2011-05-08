@@ -70,14 +70,21 @@ find_timezone(char * tz) {
     strncat(buf, tz, strlen(tz));	// not using strlcat because glibc doesn't support it    
     strncat(buf,"\"", 1);
     strncat(buf, msg , strlen(msg));
+    // print error msg
     puts(buf);
     if (regcomp(&compiled, tz, REG_ICASE|REG_EXTENDED|REG_NOSUB) != 0) {
-	puts("Reg ex compilation failed\n") ;
+	// regex compilation failed, probably because tz (argv) string is not a valid regex
+	strcpy(buf, "Search failed: ");
+	strncat(buf, tz, strlen(tz));
+	strncat(buf, " is an invalid regex.", 22);
+	puts(buf) ;
 	exit(-1);
     }
+    // search for regex match on array of timezones
     for (i = 0 ; i < sz_timezones ; i++ ) {
 	// list possible timezones
 	if (regexec(&compiled, timezones[i], 0, NULL, 0) == 0) {
+	    // regex match found, so print the matching timezone
 	    found = 1;
 	    puts(timezones[i]);
 	}
@@ -97,24 +104,35 @@ int main (int argc, char *argv[])
 
     mytm.tm_isdst = -1;
 
-    if (argc <= 1) {
-	puts("\nNeed at least one timezone.\n");
-	exit(1);
+    switch (argc) {
+	case 1:
+	    puts("Need at least one timezone.\nExample:\nAsia/Tokyo\tor\nEurope/Paris \"2011-01-01 12:00\" America/New_York\nTo find a timezone, use a regex.");
+	    exit(1);
+	case 2:
+	    // single timezone supplied
+	    find_timezone(argv[1]);
+	    time(&mytime_t);	// localtime on this machine
+	    setenv(tz, argv[1], OVERWRITE);
+	    break;
+	case 4:
+	    // timezone time timezone supplied
+	    find_timezone(argv[1]);
+	    find_timezone(argv[3]);
+	    setenv(tz, argv[1], OVERWRITE);
+	    tzset();
+	    if (strptime(argv[2], TIMEFMTIN , &mytm) == NULL) {
+		puts("Time format not valid.");
+		exit(1);
+	    }
+	    mytime_t = mktime(&mytm);
+	    setenv(tz, argv[3], OVERWRITE);
+	    break;
+	default:
+	    // unknown gibberish supplied
+	    puts("Invalid number of arguments.  Need <timezone> [<datetime> <timezone>]");
+	    exit(1);
     }
-    if (argc > 2) {
-	find_timezone(argv[1]);
-	find_timezone(argv[3]);
-	setenv(tz, argv[1], OVERWRITE);
-	tzset();
-	strptime(argv[2], TIMEFMTIN , &mytm);
-	mytime_t = mktime(&mytm);
-	setenv(tz, argv[3], OVERWRITE);
-    } 
-    else {
-	find_timezone(argv[1]);
-	time(&mytime_t);	// localtime on this machine
-	setenv(tz, argv[1], OVERWRITE);
-    }
+    // do the actual timezone conversion
     tzset();
     localtime_r(&mytime_t, &mytm);
     strftime(buf, BUFLEN, TIMEFMTOUT, &mytm);
