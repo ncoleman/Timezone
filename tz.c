@@ -7,19 +7,21 @@
  *	timezone time timezone, in which case the time in the first timezone is converted to the second timezone.
  *  Output:
  *	a formatted string of the time.
+ *	or a list of possible candidate timezones if the supplied one is not recognised.
+ *  Usage:
+ *  /tz Europe/Rome
+ *  ./tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
+ *  ./tz Australia/Perth "2011-05-06 19:28" America/New_York
  *
  *  based on http://stackoverflow.com/questions/2413418/how-to-programatically-convert-a-time-from-one-timezone-to-another-in-c
  *  NJC 07/05/11  
  *
- * TODO  
- *	Automate local timezone, from link in /etc/localtime.
- *	Do error checking on input timezones, perhaps by iterating through files
- *	in /usr/share/zoneinfo to check on a match with a filename with the input timezone.
 */
 
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <regex.h>
 
@@ -29,7 +31,7 @@
 #include <unistd.h>
 readlink()
 */
-// Change local timezone here
+// Change local timezone here (not used in current version)
 #define TIMEZONE "Australia/Perth"
 
 // Change the time format to whatever you desire here
@@ -40,6 +42,7 @@ readlink()
 #define BUFLEN 100
 
 extern char const * const timezones[];
+char buf[BUFLEN];
 
 /*
  * Check a timezone for validity, displaying a list of possible candidates if not found.
@@ -50,7 +53,6 @@ void
 find_timezone(char * tz) {
     int i;
     int found = 0;
-    char buf[BUFLEN];
     regex_t compiled;
     // number of elements in an array of strings: sizeof(array)/sizeof*(array)
     for (i=0; i < sizeof(timezones)/sizeof*(timezones)  ; i++) {
@@ -59,7 +61,8 @@ find_timezone(char * tz) {
 	}
     }
     // only get to here is timezone was not found.
-    strcpy(buf, tz);
+    buf[0] = '\n'; buf[1] = '\0';
+    strcat(buf, tz);
     strcat(buf, " timezone not found.  Possible candidates:");
     puts(buf);
     if (regcomp(&compiled, tz, REG_ICASE) != 0) {
@@ -76,7 +79,7 @@ find_timezone(char * tz) {
     if (!found) {
 	puts("No candidates found. Try using a shorter string or a simple regex.");
     }
-    puts("Finished.");
+    puts("Finished.\n");
     exit(1);
 }
 
@@ -85,9 +88,7 @@ int main (int argc, char *argv[])
 {
     struct tm mytm = {0};
     time_t mytime_t;
-    char buf[BUFLEN];
     char const * const tz = "TZ";
-    char const * const mytz = TIMEZONE;
 
     mytm.tm_isdst = -1;
     if (argc > 2) {
