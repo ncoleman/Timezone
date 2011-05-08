@@ -1,5 +1,6 @@
 /*
  * List of timezones on my OpenBSD system.  Should be good anywhere since TZs don't change.
+ * The only reason this is in a separate file is to avoid an enormously long source listing before main().
  *
  */
 
