@@ -69,7 +69,7 @@ find_timezone(char * tz) {
     strcpy(buf,"\"");			// strcpy safe here, first use of buffer
     strncat(buf, tz, strlen(tz));	// not using strlcat because glibc doesn't support it    
     strncat(buf,"\"", 1);
-    strlcat(buf, msg , strlen(msg));
+    strncat(buf, msg , strlen(msg));
     puts(buf);
     if (regcomp(&compiled, tz, REG_ICASE|REG_EXTENDED|REG_NOSUB) != 0) {
 	puts("Reg ex compilation failed\n") ;
