@@ -1,20 +1,26 @@
 /*
  *  Convert localtime from one timezone to another timezone.
- *  Timezone in format of /usr/share/zoneinfo directory structure:
- *  e.g. Australia/Perth, Europe/Rome, Zulu, Israel
- *  Two types of input:
- *	timezone, in which case localtime is converted to that timezone
- *	timezone time timezone, in which case the time in the first timezone is converted to the second timezone.
- *  Output:
- *	a formatted string of the time.
- *	or a list of possible candidate timezones if the supplied one is not recognised.
- *  Usage:
- *  /tz Europe/Rome
- *  ./tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
- *  ./tz Australia/Perth "2011-05-06 19:28" America/New_York
  *
- *  based on http://stackoverflow.com/questions/2413418/how-to-programatically-convert-a-time-from-one-timezone-to-another-in-c
- *  NJC 07/05/11  
+ *  Timezone in format of /usr/share/zoneinfo directory structure:
+ *	e.g. Australia/Perth, Europe/Rome, Zulu, Israel
+ *  Input either:
+ *	timezone, localtime is converted to that timezone; or
+ *	timezone time timezone, the time in the first timezone is converted to the second timezone.
+ *  Output:
+ *	a formatted string of the time; or
+ *	a list of possible candidate timezones if the supplied one(s) is not recognised.
+ *  Usage:
+ *	tz Europe/Rome
+ *	tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
+ *	tz Australia/Perth "2011-05-06 19:28" America/New_York
+ *  Example output:
+ *	Sun, 08 May 2011 09:09:57 +0200(CEST)
+ *
+ *  Compilation:
+ *	 cc tz.c -Wall -O2  -o tz
+ *
+ *  Concept based on http://stackoverflow.com/questions/2413418/how-to-programatically-convert-a-time-from-one-timezone-to-another-in-c
+ *  copyright NJC 07 May 2011  
  *
 */
 
@@ -27,12 +33,8 @@
 
 #include "timezones.h"
 
-/* alternative to hard-coding local timezone is to use readlink from unistd.h
-#include <unistd.h>
-readlink()
-*/
 // Change local timezone here (not used in current version)
-#define TIMEZONE "Australia/Perth"
+//#define TIMEZONE "Australia/Perth"
 
 // Change the time format to whatever you desire here
 #define TIMEFMTIN "%Y-%m-%d %H:%M"
@@ -53,23 +55,27 @@ void
 find_timezone(char * tz) {
     int i;
     int found = 0;
-    regex_t compiled;
+    char msg[] = " timezone not found.  Possible candidates:";
     // number of elements in an array of strings: sizeof(array)/sizeof*(array)
-    for (i=0; i < sizeof(timezones)/sizeof*(timezones)  ; i++) {
+    int sz_timezones = sizeof(timezones)/sizeof*(timezones);
+    regex_t compiled;
+    // check if the supplied timezone string is found and return if it is
+    for (i=0; i < sz_timezones  ; i++) {
 	if (strcmp(timezones[i], tz) == 0) {
 	    return;
 	}
     }
-    // only get to here is timezone was not found.
-    buf[0] = '\n'; buf[1] = '\0';
-    strlcat(buf, tz, BUFLEN);
-    strlcat(buf, " timezone not found.  Possible candidates:", BUFLEN);
+    // only get to here if timezone was not found
+    strcpy(buf,"\"");			// strcpy safe here, first use of buffer
+    strncat(buf, tz, strlen(tz));	// not using strlcat because glibc doesn't support it    
+    strncat(buf,"\"", 1);
+    strlcat(buf, msg , strlen(msg));
     puts(buf);
-    if (regcomp(&compiled, tz, REG_ICASE) != 0) {
+    if (regcomp(&compiled, tz, REG_ICASE|REG_EXTENDED|REG_NOSUB) != 0) {
 	puts("Reg ex compilation failed\n") ;
 	exit(-1);
     }
-    for (i = 0 ; i < 500 ; i++ ) {
+    for (i = 0 ; i < sz_timezones ; i++ ) {
 	// list possible timezones
 	if (regexec(&compiled, timezones[i], 0, NULL, 0) == 0) {
 	    found = 1;
@@ -77,9 +83,8 @@ find_timezone(char * tz) {
 	}
     }
     if (!found) {
-	puts("No candidates found. Try using a shorter string or a simple regex.");
+	puts("No candidates found. Try searching with a shorter string or an extended regex.");
     }
-    puts("Finished.\n");
     exit(1);
 }
 
@@ -118,8 +123,3 @@ int main (int argc, char *argv[])
     return 0;
 }
 
-/* Usage
-/tz Europe/Rome
-./tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
-./tz Australia/Perth "2011-05-06 19:28" America/New_York
-*/
