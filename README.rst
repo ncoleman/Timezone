@@ -6,28 +6,28 @@ Display time converted from one timezone to another timezone.
 Timezone in format of /usr/share/zoneinfo directory structure:
       e.g. Australia/Sydney, Europe/Rome, Zulu, Israel
 
-Input either:
+Input either:::
       timezone				local machine's localtime is converted to that timezone; or
       timezone time timezone		the time in the first timezone is converted to the second timezone.
-Output:
+Output:::
       a formatted string of the time; or
       a list of possible candidate timezones if the supplied one(s) is not recognised.
-Usage:
+Usage:::
       tz Europe/Rome
       tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
       tz Australia/Sydney "2011-05-06 19:28" America/New_York
 
 Examples:
-      Normal:
+      Normal:::
           $ tz Europe/Rome
                 Thu, 12 May 2011 06:57:09 +0200 (CEST)
           $ tz Australia/Sydney "2011-05-06 19:28" America/New_York
                 Fri, 06 May 2011 05:28:00 -0400 (EDT)
-      Not found:
+      Not found:::
           $ tz paris
             "paris" timezone not found.  Possible candidates:
             Europe/Paris
-      Using a regex:
+      Using a regex:::
           $ tz "s(ain)?t_"
                 "s(ain)?t_" timezone not found.  Possible candidates:
                 America/St_Barthelemy
