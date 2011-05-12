@@ -1,5 +1,5 @@
 /*
- *  Convert time from one timezone to another timezone.
+ *  Display time converted from one timezone to another timezone.
  *
  *  Timezone in format of /usr/share/zoneinfo directory structure:
  *	e.g. Australia/Sydney, Europe/Rome, Zulu, Israel
