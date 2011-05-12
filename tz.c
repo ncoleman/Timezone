@@ -1,30 +1,57 @@
 /*
- *  Convert localtime from one timezone to another timezone.
+ *  Convert time from one timezone to another timezone.
  *
  *  Timezone in format of /usr/share/zoneinfo directory structure:
- *	e.g. Australia/Perth, Europe/Rome, Zulu, Israel
+ *	e.g. Australia/Sydney, Europe/Rome, Zulu, Israel
+ *
  *  Input either:
- *	timezone, localtime is converted to that timezone; or
- *	timezone time timezone, the time in the first timezone is converted to the second timezone.
+ *	timezone			local machine's localtime is converted to that timezone; or
+ *	timezone time timezone		the time in the first timezone is converted to the second timezone.
  *  Output:
  *	a formatted string of the time; or
  *	a list of possible candidate timezones if the supplied one(s) is not recognised.
  *  Usage:
  *	tz Europe/Rome
  *	tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
- *	tz Australia/Perth "2011-05-06 19:28" America/New_York
- *  Example output:
- *	Sun, 08 May 2011 09:09:57 +0200(CEST)
+ *	tz Australia/Sydney "2011-05-06 19:28" America/New_York
+ *
+ *  Examples:
+ *	Normal:
+ *	    $ tz Australia/Sydney "2011-05-06 19:28" America/New_York
+ *		 Fri, 06 May 2011 05:28:00 -0400 (EDT)
+ *	Not found:
+ *	    $ tz paris
+ *		 "paris" timezone not found.  Possible candidates:
+ *		 Europe/Paris
+ *	Using a regex:
+ *	    $ tz "s(ain)?t_"
+ *		 "s(ain)?t_" timezone not found.  Possible candidates:
+ *		 America/St_Barthelemy
+ *		 America/St_Johns
+ *		 America/St_Kitts
+ *		 America/St_Lucia
+ *		 America/St_Thomas
+ *		 America/St_Vincent
+ *		 Atlantic/St_Helena
  *
  *  Compilation:
  *	 cc tz.c -Wall -O2  -o tz
  *
- *  Concept based on http://stackoverflow.com/questions/2413418/how-to-programatically-convert-a-time-from-one-timezone-to-another-in-c
+ *	 To generate the entries in timzone.h for your machine, run `find /usr/share/zoneinfo -type f -ls | cut -d '/'  -f 5-9` and edit
+ *	 in your editor to add leading " and trailing ", .   The posix and right directory entries can be deleted, along with zone.tab.
+ *	 You will need to regenerate (or manually add) the entries if a new timezone is created in the world.  I imagine this would
+ *	 be a very rare event.
+ *
+ *  Remarks:
+ *	Concept based on http://stackoverflow.com/questions/2413418/how-to-programatically-convert-a-time-from-one-timezone-to-another-in-c
  *
  *  Licence:
- *	MIT-style licence (see below),  which basically means you can do what you want.  Copyright 2011 Nick Coleman 
+ *	MIT-style licence (see below for particulars).  Copyright 2011 Nick Coleman 
  *
 */
+
+#define _XOPEN_SOURCE /*  glibc2 needs this */
+#define _BSD_SOURCE /* ditto */
 
 #include <time.h>
 #include <stdio.h>
@@ -39,8 +66,10 @@
 //#define TIMEZONE "Australia/Perth"
 
 // Change the time format to whatever you desire here
+// Time format user shall input
 #define TIMEFMTIN "%Y-%m-%d %H:%M"
-#define TIMEFMTOUT "%a, %d %b %Y %H:%M:%S %z(%Z)"
+// Output time format
+#define TIMEFMTOUT "%a, %d %b %Y %H:%M:%S %z (%Z)"
 
 #define OVERWRITE 1
 #define BUFLEN 100
@@ -80,7 +109,7 @@ find_timezone(char * tz) {
 	strncat(buf, tz, strlen(tz));
 	strncat(buf, " is an invalid regex.", 22);
 	puts(buf) ;
-	exit(-1);
+	exit(1);
     }
     // search for regex match on array of timezones
     for (i = 0 ; i < sz_timezones ; i++ ) {
@@ -94,6 +123,7 @@ find_timezone(char * tz) {
     if (!found) {
 	puts("No candidates found. Try searching with a shorter string or an extended regex.");
     }
+    // only get to here if timezone was not an exact match
     exit(1);
 }
 
@@ -123,7 +153,9 @@ int main (int argc, char *argv[])
 	    setenv(tz, argv[1], OVERWRITE);
 	    tzset();
 	    if (strptime(argv[2], TIMEFMTIN , &mytm) == NULL) {
-		puts("Time format not valid.");
+		strcpy(buf, "Time format not valid.\nShould be (see strftime options): ");
+		strncat(buf, TIMEFMTIN, strlen(TIMEFMTIN));
+		puts(buf);
 		exit(1);
 	    }
 	    mytime_t = mktime(&mytm);
