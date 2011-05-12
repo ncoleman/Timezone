@@ -50,8 +50,8 @@
  *
 */
 
-#define _XOPEN_SOURCE /*  glibc2 needs this */
-#define _BSD_SOURCE /* ditto */
+#define _XOPEN_SOURCE	    /*  glibc2 needs this */
+#define _BSD_SOURCE	    /* ditto */
 
 #include <time.h>
 #include <stdio.h>
@@ -130,7 +130,7 @@ int main (int argc, char *argv[])
 {
     struct tm mytm = {0};
     time_t mytime_t;
-    char const * const tz = "TZ";
+    const char *const tz = "TZ";
 
     mytm.tm_isdst = -1;
 
