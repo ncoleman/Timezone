@@ -20,23 +20,23 @@ Usage:
 Examples:
       Normal:
           $ tz Europe/Rome
-      	Thu, 12 May 2011 06:57:09 +0200 (CEST)
+                Thu, 12 May 2011 06:57:09 +0200 (CEST)
           $ tz Australia/Sydney "2011-05-06 19:28" America/New_York
-      	Fri, 06 May 2011 05:28:00 -0400 (EDT)
+                Fri, 06 May 2011 05:28:00 -0400 (EDT)
       Not found:
           $ tz paris
-      	 "paris" timezone not found.  Possible candidates:
-      	 Europe/Paris
+            "paris" timezone not found.  Possible candidates:
+            Europe/Paris
       Using a regex:
           $ tz "s(ain)?t_"
-      	 "s(ain)?t_" timezone not found.  Possible candidates:
-      	 America/St_Barthelemy
-      	 America/St_Johns
-      	 America/St_Kitts
-      	 America/St_Lucia
-      	 America/St_Thomas
-      	 America/St_Vincent
-      	 Atlantic/St_Helena
+                "s(ain)?t_" timezone not found.  Possible candidates:
+                America/St_Barthelemy
+                America/St_Johns
+                America/St_Kitts
+                America/St_Lucia
+                America/St_Thomas
+                America/St_Vincent
+                Atlantic/St_Helena
 
 Compilation:
        cc tz.c -Wall -O2  -o tz
