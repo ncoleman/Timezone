@@ -17,8 +17,10 @@
  *
  *  Examples:
  *	Normal:
+ *	    $ tz Europe/Rome
+ *		Thu, 12 May 2011 06:57:09 +0200 (CEST)
  *	    $ tz Australia/Sydney "2011-05-06 19:28" America/New_York
- *		 Fri, 06 May 2011 05:28:00 -0400 (EDT)
+ *		Fri, 06 May 2011 05:28:00 -0400 (EDT)
  *	Not found:
  *	    $ tz paris
  *		 "paris" timezone not found.  Possible candidates:
@@ -37,8 +39,9 @@
  *  Compilation:
  *	 cc tz.c -Wall -O2  -o tz
  *
- *	 To generate the entries in timzone.h for your machine, run `find /usr/share/zoneinfo -type f -ls | cut -d '/'  -f 5-9` and edit
- *	 in your editor to add leading " and trailing ", .   The posix and right directory entries can be deleted, along with zone.tab.
+ *	 The timezone.h file is almost certainly correct for a unix-like system, including Linux.  If you have to generate the entries
+ *	 in timzone.h for your machine, run `find /usr/share/zoneinfo -type f -ls | cut -d '/'  -f 5-9` and edit the output in your
+ *	 editor to add leading " and trailing ", .   The posix and right directory entries can be deleted, along with zone.tab.
  *	 You will need to regenerate (or manually add) the entries if a new timezone is created in the world.  I imagine this would
  *	 be a very rare event.
  *
