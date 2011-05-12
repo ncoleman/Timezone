@@ -4,7 +4,7 @@
  *
  */
 
-char const * const timezones[] = {
+const char *const  timezones[] = {
 "Africa/Abidjan",
 "Africa/Accra",
 "Africa/Addis_Ababa",

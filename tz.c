@@ -62,19 +62,17 @@
 
 #include "timezones.h"
 
-// Change local timezone here (not used in current version)
-//#define TIMEZONE "Australia/Perth"
-
-// Change the time format to whatever you desire here
-// Time format user shall input
+// Change the time formats to whatever you desire here
+// Time format that user shall input
 #define TIMEFMTIN "%Y-%m-%d %H:%M"
 // Output time format
 #define TIMEFMTOUT "%a, %d %b %Y %H:%M:%S %z (%Z)"
 
+// Constants
 #define OVERWRITE 1
 #define BUFLEN 100
 
-extern char const * const timezones[];
+extern const char *const  timezones[];
 char buf[BUFLEN];
 
 /*
