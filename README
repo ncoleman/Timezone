@@ -41,11 +41,15 @@ Examples:
 Compilation:
        cc tz.c -Wall -O2  -o tz
 
-       The timezone.h file is almost certainly correct for a unix-like system, including Linux.  If you have to generate the entries
-       in timzone.h for your machine, run `find /usr/share/zoneinfo -type f -ls | cut -d '/'  -f 5-9` and edit the output in your
-       editor to add leading " and trailing ", .   The posix and right directory entries can be deleted, along with zone.tab.
-       You will need to regenerate (or manually add) the entries if a new timezone is created in the world.  I imagine this would
-       be a very rare event.
+	The timezone.h file is almost certainly correct for a unix-like
+	system, including Linux.  If you have to generate the entries in
+	timzone.h for your machine, run `find /usr/share/zoneinfo -type f -ls
+	| cut -d '/'  -f 5-9` and edit the output or use sed to add leading "
+	char and trailing ", chars.   The posix and right directory entries
+	can be deleted, along with zone.tab.  You will need to regenerate (or
+	manually add) the entries if a new timezone is created in the world
+	and your /usr/share/timezone entries change.  I imagine this would be
+	a very rare event.
 
 Remarks:
       Concept based on http://stackoverflow.com/questions/2413418/how-to-programatically-convert-a-time-from-one-timezone-to-another-in-c
