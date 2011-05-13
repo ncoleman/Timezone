@@ -21,13 +21,15 @@ Output:
 Usage:
     tz Europe/Rome
     tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
-    tz Australia/Sydney "2011-05-06 19:28" America/New_York
+    tz Australia/Sydney 201105061928 America/New_York
 
 Examples:
     Normal:
 	$ tz Europe/Rome
 	    Thu, 12 May 2011 06:57:09 +0200 (CEST)
-	$ tz Australia/Sydney "2011-05-06 19:28" America/New_York
+	$ tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
+	    Sat, 30 Oct 2004 00:30:00 -0400 (EDT)
+	$ tz Australia/Sydney 201105061928 America/New_York
 	    Fri, 06 May 2011 05:28:00 -0400 (EDT)
     Not found:
 	$ tz paris
