@@ -10,23 +10,26 @@ Input either:
 
 Input Format:
     timezone in the format of the /usr/share/zoneinfo directory structure (e.g.
-	Australia/Sydney, Europe/Rome, Zulu, Israel), or a regex.  If the regex
+	Australia/Sydney, Europe/Rome, Zulu, Israel), or an extended regex.  If the regex
 	matches only one timezone from the internal list, that timezone is
 	susbstituted automatically on the basis that the user should not have to retype
 	it again.  The return value can be used to detect if this substitution has
 	occurred.
-	The timezone is case-sensitive, but the regex search is case-insensitive.  This lets
-	you do quick data entry of "paris" since the regex will substitute the correct value of
-	Europe/Paris.
+	The timezone is case-sensitive, but the regex search is case-insensitive.  
+	This lets you do quick data entry of "paris" since the regex search
+	will substitute the correct value of Europe/Paris.
+	The regex does partial matches automatically.  You don't need to specify ".*foo.*",
+	foo will work fine.
     time in either of two strftime formats (which can be changed in #define in the source code):
-	"%Y-%m-%d %H:%M" or %Y%m%d%H%M (the second for quick and dirty typing without legibility).
+	"%Y-%m-%d %H:%M" or %Y%m%d%H%M (the second for quick and dirty typing, 
+	sacrificing legibility).
 
 Output:
-    a formatted string of the time; or
-    a list of possible candidate timezones.
+    formatted string of the time; or
+    list of possible candidate timezones.
 
 Return value:
-    0	timezones match exactly (perfect match) with the internal list; no errors
+    0	timezone(s) match exactly (perfect match) with the internal list; no errors
     1	at least one of the timezones was substituted because there was only one 
 	match in the internal list (i.e. imperfect match); no errors
     2	an error occurred: too many timezone candidates to automatically choose one, time format wrong, regex invalid.
@@ -44,15 +47,28 @@ Examples:
 	    Sat, 30 Oct 2004 00:30:00 -0400 (EDT)
 	$ tz Australia/Sydney 201105061928 America/New_York
 	    Fri, 06 May 2011 05:28:00 -0400 (EDT)
-    Not found:
+    Substitution:
 	$ tz paris
 	    "paris" timezone not found.  Possible candidates:
 	    Europe/Paris is the only candidate, so using it.
 	    Fri, 13 May 2011 05:46:01 +0200 (CEST)
+	$ echo $?
+	  1
+	$ tz paris "2011-05-13 9:30" rome
+	    "rome" timezone not found.  Possible candidates:
+	    Europe/Rome is the only candidate, so using it.
+	    "paris" timezone not found.  Possible candidates:
+	    Europe/Paris is the only candidate, so using it.
+	    Fri, 13 May 2011 09:30:00 +0200 (CEST)
+	$ echo $?
+	  1
+    Not found:
 	$ tz par
 	    "par" timezone not found.  Possible candidates:
 	    America/Paramaribo
 	    Europe/Paris
+	$ echo $?
+	  2
     Using a regex:
 	$ tz "s(ain)?t_"
 	    "s(ain)?t_" timezone not found.  Possible candidates:
@@ -78,7 +94,9 @@ Compilation:
     a very rare event.
 
 Remarks:
-      Concept based on http://stackoverflow.com/questions/2413418/how-to-programatically-convert-a-time-from-one-timezone-to-another-in-c
+    Bang off an email to me, I'd like to hear from you.   nick@nickcoleman.org
+
+    Timezone conversion concept based on http://stackoverflow.com/questions/2413418/how-to-programatically-convert-a-time-from-one-timezone-to-another-in-c
 
 Licence:
 	MIT-style licence (see source file for particulars).  Copyright 2011 Nick Coleman 
