@@ -10,6 +10,10 @@
  *  Output:
  *	a formatted string of the time; or
  *	a list of possible candidate timezones if the supplied one(s) is not recognised.
+ *  Return value:
+ *	0 for perfect match and no errors
+ *	1 for imperfect_match match (one candidate chosen), but no errors
+ *	2 for error, couldn't continue.
  *  Usage:
  *	tz Europe/Rome
  *	tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
@@ -79,11 +83,18 @@
 #define BUFLEN 100
 
 extern const char *const  timezones[];
-char buf[BUFLEN];
+char buf[BUFLEN];				    // general purpose
+char tz1[BUFLEN];				    // for first timezone string
+char tz2[BUFLEN];				    // for second timezone string
+int imperfect_match = 0;			    // flag to indicate a regex substitution occurred
+
 
 /*
  * Check a timezone for validity, displaying a list of possible candidates if not found.
  * In that case, the function exits the program since no further progress is possible.
+ *
+ * Returns with timezone in buf[] if perfect match or one possible match, doesn't return
+ * if multiple or no match.
  *
  */
 void
@@ -106,29 +117,39 @@ find_timezone(char * tz) {
     strncat(buf,"\"", 1);
     strncat(buf, msg , strlen(msg));
     // print error msg
-    puts(buf);
+    printf("%s", buf);
     if (regcomp(&compiled, tz, REG_ICASE|REG_EXTENDED|REG_NOSUB) != 0) {
 	// regex compilation failed, probably because tz (argv) string is not a valid regex
 	strcpy(buf, "Search failed: ");
 	strncat(buf, tz, strlen(tz));
 	strncat(buf, " is an invalid regex.", 22);
 	puts(buf) ;
-	exit(1);
+	exit(2);
     }
     // search for regex match on array of timezones
     for (i = 0 ; i < sz_timezones ; i++ ) {
 	// list possible timezones
 	if (regexec(&compiled, timezones[i], 0, NULL, 0) == 0) {
 	    // regex match found, so print the matching timezone
-	    found = 1;
-	    puts(timezones[i]);
+	    // if this is the first one found, copy it to buffer for possible re-use
+	    if (++found == 1)
+		strcpy(buf, timezones[i]);
+	    printf("\n%s",timezones[i]);
 	}
     }
     if (!found) {
 	puts("No candidates found. Try searching with a shorter string or an extended regex.");
     }
+    if (found == 1) {
+	// found only one possible candidate, so use it
+	printf(" is the only candidate, so using it.");
+	strcpy(tz2,buf);		    // use tz2, main() will switch if necessary
+	imperfect_match |= 1;		    // set imperfect if not already
+	return; 
+    }
+    puts("");
     // only get to here if timezone was not an exact match
-    exit(1);
+    exit(2);
 }
 
 
@@ -144,18 +165,19 @@ int main (int argc, char *argv[])
 	case 1:
 	    // no input, print error msg and exit
 	    puts("Need at least one timezone.\nExample:\nAsia/Tokyo\tor\nEurope/Paris \"2011-01-01 12:00\" America/New_York\nTo find a timezone, use a regex.");
-	    exit(1);
+	    exit(2);
 	case 2:
 	    // single timezone supplied
 	    find_timezone(argv[1]);
 	    time(&mytime_t);	// localtime on this machine
-	    setenv(tz, argv[1], OVERWRITE);
+	    setenv(tz, tz2, OVERWRITE);
 	    break;
 	case 4:
 	    // timezone time timezone supplied
 	    find_timezone(argv[1]);
+	    strcpy(tz1, tz2);
 	    find_timezone(argv[3]);
-	    setenv(tz, argv[1], OVERWRITE);
+	    setenv(tz, tz1, OVERWRITE);
 	    tzset();
 	    // try first format time input string
 	    if (strptime(argv[2], TIMEFMTINP1 , &mytm) == NULL) {
@@ -169,16 +191,16 @@ int main (int argc, char *argv[])
 		    strncat(buf, " or ", BUFLEN - strlen(TIMEFMTINP1) - strlen(msg) - 4);
 		    strncat(buf, TIMEFMTINP2, BUFLEN - strlen(TIMEFMTINP1) - strlen(msg) - 4 - strlen(TIMEFMTINP2));
 		    puts(buf);
-		    exit(1);
+		    exit(2);
 		}
 	    }
 	    mytime_t = mktime(&mytm);
-	    setenv(tz, argv[3], OVERWRITE);
+	    setenv(tz, tz2, OVERWRITE);
 	    break;
 	default:
 	    // unknown gibberish supplied
 	    puts("Invalid number of arguments.  Need <timezone> [<datetime> <timezone>]");
-	    exit(1);
+	    exit(2);
     }
     // do the actual timezone conversion
     tzset();
@@ -186,7 +208,7 @@ int main (int argc, char *argv[])
     strftime(buf, BUFLEN, TIMEFMTOUT, &mytm);
     puts(buf);
 
-    return 0;
+    return imperfect_match;				    // 0 is no substitutions, 1 is at least one substitution
 }
 
 /*
