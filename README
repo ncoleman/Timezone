@@ -15,6 +15,9 @@ Input Format:
 	susbstituted automatically on the basis that the user should not have to retype
 	it again.  The return value can be used to detect if this substitution has
 	occurred.
+	The timezone is case-sensitive, but the regex search is case-insensitive.  This lets
+	you do quick data entry of "paris" since the regex will substitute the correct value of
+	Europe/Paris.
     time in either of two strftime formats (which can be changed in #define in the source code):
 	"%Y-%m-%d %H:%M" or %Y%m%d%H%M (the second for quick and dirty typing without legibility).
 
