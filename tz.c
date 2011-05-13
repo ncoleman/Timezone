@@ -65,9 +65,12 @@
 
 #include "timezones.h"
 
-// Change the time formats to whatever you desire here
+/* Change the time formats to whatever you desire here.  You can use two formats for input.
+ * I set up format 1 for strict formatting, and format 2 for loose, unreadable but quick typing.
+ */
 // Time format that user shall input
-#define TIMEFMTIN "%Y-%m-%d %H:%M"
+#define TIMEFMTINP1 "%Y-%m-%d %H:%M"
+#define TIMEFMTINP2 "%Y%m%d%H%M"
 // Output time format
 #define TIMEFMTOUT "%a, %d %b %Y %H:%M:%S %z (%Z)"
 
@@ -139,6 +142,7 @@ int main (int argc, char *argv[])
 
     switch (argc) {
 	case 1:
+	    // no input, print error msg and exit
 	    puts("Need at least one timezone.\nExample:\nAsia/Tokyo\tor\nEurope/Paris \"2011-01-01 12:00\" America/New_York\nTo find a timezone, use a regex.");
 	    exit(1);
 	case 2:
@@ -153,11 +157,20 @@ int main (int argc, char *argv[])
 	    find_timezone(argv[3]);
 	    setenv(tz, argv[1], OVERWRITE);
 	    tzset();
-	    if (strptime(argv[2], TIMEFMTIN , &mytm) == NULL) {
-		strcpy(buf, "Time format not valid.\nShould be (see strftime options): ");
-		strncat(buf, TIMEFMTIN, strlen(TIMEFMTIN));
-		puts(buf);
-		exit(1);
+	    // try first format time input string
+	    if (strptime(argv[2], TIMEFMTINP1 , &mytm) == NULL) {
+		// failed, try second format
+		if (strptime(argv[2], TIMEFMTINP2, &mytm) == NULL) {
+		    // still failed, error msg and exit.
+		    char *msg = "Time format not valid.\nShould be (see strftime options): ";
+		    strcpy(buf, msg);
+		    // could tidy up all these strlen, but this section isn't entered often enough to bother.
+		    strncat(buf, TIMEFMTINP1, BUFLEN - strlen(TIMEFMTINP1) - strlen(msg));
+		    strncat(buf, " or ", BUFLEN - strlen(TIMEFMTINP1) - strlen(msg) - 4);
+		    strncat(buf, TIMEFMTINP2, BUFLEN - strlen(TIMEFMTINP1) - strlen(msg) - 4 - strlen(TIMEFMTINP2));
+		    puts(buf);
+		    exit(1);
+		}
 	    }
 	    mytime_t = mktime(&mytm);
 	    setenv(tz, argv[3], OVERWRITE);

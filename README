@@ -3,13 +3,16 @@ Timezone Converter
 
 Display time converted from one timezone to another timezone.
 
-Timezone is in the format of the /usr/share/zoneinfo directory structure:
-    e.g. Australia/Sydney, Europe/Rome, Zulu, Israel
-
 Input either:
-    timezone				Local machine's localtime is converted to that timezone; or
-    timezone time timezone		The time in the first timezone is converted to the second timezoner; or
-    regex				Timezones are searched using the regex (which can be a simple string).	
+    timezone			Local machine's localtime is converted to that timezone; or
+    timezone time timezone	The time in the first timezone is converted to the second timezoner; or
+    regex			Timezones are searched using the regex (which can be a simple string).	
+
+Input Formats:
+    timezone is in the format of the /usr/share/zoneinfo directory structure:
+	e.g. Australia/Sydney, Europe/Rome, Zulu, Israel
+    time in either of two strftime formats (which can be changed in #define in the source code):
+	"%Y-%m-%d %H:%M" or %Y%m%d%H%M (the second for quick and dirty typing without legibility).
 
 Output:
     a formatted string of the time; or
