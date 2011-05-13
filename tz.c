@@ -108,6 +108,7 @@ find_timezone(char * tz) {
     // check if the supplied timezone string is found and return if it is
     for (i=0; i < sz_timezones  ; i++) {
 	if (strcmp(timezones[i], tz) == 0) {
+	    strcpy(tz1, timezones[i]);
 	    return;
 	}
     }
@@ -138,17 +139,17 @@ find_timezone(char * tz) {
 	}
     }
     if (!found) {
-	puts("No candidates found. Try searching with a shorter string or an extended regex.");
+	printf("\nNo candidates found. Try searching with a shorter string or an extended regex.");
     }
     if (found == 1) {
 	// found only one possible candidate, so use it
-	printf(" is the only candidate, so using it.");
-	strcpy(tz2,buf);		    // use tz2, main() will switch if necessary
+	printf(" is the only candidate, so using it.\n");
+	strcpy(tz1,buf);		    // use tz1, main() will switch if necessary
 	imperfect_match |= 1;		    // set imperfect if not already
 	return; 
     }
-    puts("");
-    // only get to here if timezone was not an exact match
+    printf("\n");
+    // only get to here if timezone was not found nor substituted
     exit(2);
 }
 
@@ -170,13 +171,14 @@ int main (int argc, char *argv[])
 	    // single timezone supplied
 	    find_timezone(argv[1]);
 	    time(&mytime_t);	// localtime on this machine
-	    setenv(tz, tz2, OVERWRITE);
+	    setenv(tz, tz1, OVERWRITE);
 	    break;
 	case 4:
 	    // timezone time timezone supplied
-	    find_timezone(argv[1]);
-	    strcpy(tz1, tz2);
+	    // find timezone in reverse order so tz1 and tz2 are set up correctly
 	    find_timezone(argv[3]);
+	    strcpy(tz2, tz1);
+	    find_timezone(argv[1]);
 	    setenv(tz, tz1, OVERWRITE);
 	    tzset();
 	    // try first format time input string
