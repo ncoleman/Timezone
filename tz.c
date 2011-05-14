@@ -1,53 +1,46 @@
 /*
- *  Display time converted from one timezone to another timezone.
- *
- *  Timezone in format of /usr/share/zoneinfo directory structure:
- *	e.g. Australia/Sydney, Europe/Rome, Zulu, Israel
- *
- *  Input either:
- *	timezone			local machine's localtime is converted to that timezone; or
- *	timezone time timezone		the time in the first timezone is converted to the second timezone.
- *  Output:
- *	a formatted string of the time; or
- *	a list of possible candidate timezones if the supplied one(s) is not recognised.
- *  Return value:
- *	0 for perfect match and no errors
- *	1 for imperfect_match match (one candidate chosen), but no errors
- *	2 for error, couldn't continue.
- *  Usage:
- *	tz Europe/Rome
- *	tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
- *	tz Australia/Sydney "2011-05-06 19:28" America/New_York
- *
- *  Examples:
- *	Normal:
- *	    $ tz Europe/Rome
- *		Thu, 12 May 2011 06:57:09 +0200 (CEST)
- *	    $ tz Australia/Sydney "2011-05-06 19:28" America/New_York
- *		Fri, 06 May 2011 05:28:00 -0400 (EDT)
- *	Not found:
- *	    $ tz paris
- *		 "paris" timezone not found.  Possible candidates:
- *		 Europe/Paris
- *	Using a regex:
- *	    $ tz "s(ain)?t_"
- *		 "s(ain)?t_" timezone not found.  Possible candidates:
- *		 America/St_Barthelemy
- *		 America/St_Johns
- *		 America/St_Kitts
- *		 America/St_Lucia
- *		 America/St_Thomas
- *		 America/St_Vincent
- *		 Atlantic/St_Helena
- *
- *  Compilation:
- *	 cc tz.c -Wall -O2  -o tz
- *
- *	 The timezone.h file is almost certainly correct for a unix-like system, including Linux.  If you have to generate the entries
- *	 in timzone.h for your machine, run `find /usr/share/zoneinfo -type f -ls | cut -d '/'  -f 5-9` and edit the output in your
- *	 editor to add leading " and trailing ", .   The posix and right directory entries can be deleted, along with zone.tab.
- *	 You will need to regenerate (or manually add) the entries if a new timezone is created in the world.  I imagine this would
- *	 be a very rare event.
+ * Timezone Converter
+ * ==================
+ * 
+ * Display time converted from one timezone to another timezone.
+ * 
+ * Input either:
+ *     timezone			Local machine's localtime is converted to that timezone; or
+ *     timezone time timezone	The time in the first timezone is converted to the second timezone; or
+ *     regex			Timezones are searched using the regex (which can be a simple string).	
+ * 
+ * Input Format:
+ *     timezone in the format of the /usr/share/zoneinfo directory structure (e.g.
+ * 	Australia/Sydney, Europe/Rome, Zulu, Israel), or an extended regex.  If the regex
+ * 	matches only one timezone from the internal list, that timezone is
+ * 	susbstituted automatically on the basis that the user should not have to retype
+ * 	it again.  The return value can be used to detect if this substitution has
+ * 	occurred.
+ * 	The timezone is case-sensitive, but the regex search is case-insensitive.  
+ * 	This lets you do quick data entry of "paris" since the regex search
+ * 	will substitute the correct value of Europe/Paris.
+ * 	The regex does partial matches automatically.  You don't need to specify ".*foo.*",
+ * 	foo will work fine.
+ *     time in either of two strftime formats (which can be changed in #define in the source code):
+ * 	"%Y-%m-%d %H:%M" or %Y%m%d%H%M (the second for quick and dirty typing, 
+ * 	sacrificing legibility).
+ * 
+ * Output:
+ *     formatted string of the time; or
+ *     list of possible candidate timezones.
+ * 
+ * Return value:
+ *     0	timezone(s) match exactly (perfect match) with the internal list; no errors
+ *     1	at least one of the timezones was substituted because there was only one 
+ * 	match in the internal list (i.e. imperfect match); no errors
+ *     2	an error occurred: too many timezone candidates to automatically choose one, time format wrong, regex invalid.
+ * 
+ * Usage:
+ *     tz paris
+ *     tz "s(aint)?_"
+ *     tz Europe/Rome
+ *     tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
+ *     tz Australia/Sydney 201105061928 America/New_York
  *
  *  Remarks:
  *	Concept based on http://stackoverflow.com/questions/2413418/how-to-programatically-convert-a-time-from-one-timezone-to-another-in-c
@@ -67,7 +60,6 @@
 #include <sys/types.h>
 #include <regex.h>
 
-#include "timezones.h"
 
 /* Change the time formats to whatever you desire here.  You can use two formats for input.
  * I set up format 1 for strict formatting, and format 2 for loose, unreadable but quick typing.
@@ -82,7 +74,6 @@
 #define OVERWRITE 1
 #define BUFLEN 100
 
-extern const char *const  timezones[];
 char buf[BUFLEN];				    // general purpose
 char tz1[BUFLEN];				    // for first timezone string
 char tz2[BUFLEN];				    // for second timezone string
@@ -102,8 +93,8 @@ find_timezone(char * tz) {
     int i;
     int found = 0;
     char msg[] = " timezone not found.  Possible candidates:";
-    // number of elements in an array of strings: sizeof(array)/sizeof*(array)
-    int sz_timezones = sizeof(timezones)/sizeof*(timezones);
+    extern const char *const timezones[];
+    extern const int sz_timezones;
     regex_t compiled;
     // check if the supplied timezone string is found and return if it is
     for (i=0; i < sz_timezones  ; i++) {
@@ -189,6 +180,7 @@ int main (int argc, char *argv[])
 		    char *msg = "Time format not valid.\nShould be (see strftime options): ";
 		    strcpy(buf, msg);
 		    // could tidy up all these strlen, but this section isn't entered often enough to bother.
+		    // TODO why aren't I using printf here?
 		    strncat(buf, TIMEFMTINP1, BUFLEN - strlen(TIMEFMTINP1) - strlen(msg));
 		    strncat(buf, " or ", BUFLEN - strlen(TIMEFMTINP1) - strlen(msg) - 4);
 		    strncat(buf, TIMEFMTINP2, BUFLEN - strlen(TIMEFMTINP1) - strlen(msg) - 4 - strlen(TIMEFMTINP2));
