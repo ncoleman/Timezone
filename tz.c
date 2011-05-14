@@ -47,6 +47,9 @@
  *
  *  Licence:
  *	MIT-style licence (see below for particulars).  Copyright 2011 Nick Coleman 
+ *	
+ *  Compilation:
+ *	cc -o tz tz.c timezones.c	
  *
 */
 
@@ -92,7 +95,6 @@ void
 find_timezone(char * tz) {
     int i;
     int found = 0;
-    char msg[] = " timezone not found.  Possible candidates:";
     extern const char *const timezones[];
     extern const int sz_timezones;
     regex_t compiled;
@@ -104,18 +106,11 @@ find_timezone(char * tz) {
 	}
     }
     // only get to here if timezone was not found
-    strcpy(buf,"\"");			// strcpy safe here, first use of buffer
-    strncat(buf, tz, strlen(tz));	// not using strlcat because glibc doesn't support it    
-    strncat(buf,"\"", 1);
-    strncat(buf, msg , strlen(msg));
     // print error msg
-    printf("%s", buf);
+    printf("%s timzezone not found.  Possible candidates:", tz);
     if (regcomp(&compiled, tz, REG_ICASE|REG_EXTENDED|REG_NOSUB) != 0) {
 	// regex compilation failed, probably because tz (argv) string is not a valid regex
-	strcpy(buf, "Search failed: ");
-	strncat(buf, tz, strlen(tz));
-	strncat(buf, " is an invalid regex.", 22);
-	puts(buf) ;
+	printf("\nSearch failed: %s is an invalid regex\n", tz);
 	exit(2);
     }
     // search for regex match on array of timezones
@@ -177,14 +172,7 @@ int main (int argc, char *argv[])
 		// failed, try second format
 		if (strptime(argv[2], TIMEFMTINP2, &mytm) == NULL) {
 		    // still failed, error msg and exit.
-		    char *msg = "Time format not valid.\nShould be (see strftime options): ";
-		    strcpy(buf, msg);
-		    // could tidy up all these strlen, but this section isn't entered often enough to bother.
-		    // TODO why aren't I using printf here?
-		    strncat(buf, TIMEFMTINP1, BUFLEN - strlen(TIMEFMTINP1) - strlen(msg));
-		    strncat(buf, " or ", BUFLEN - strlen(TIMEFMTINP1) - strlen(msg) - 4);
-		    strncat(buf, TIMEFMTINP2, BUFLEN - strlen(TIMEFMTINP1) - strlen(msg) - 4 - strlen(TIMEFMTINP2));
-		    puts(buf);
+		    printf("Time format not valid.\nShould be (see man 3 strftime): %s or %s\n", TIMEFMTINP1, TIMEFMTINP2);
 		    exit(2);
 		}
 	    }
