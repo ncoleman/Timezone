@@ -78,7 +78,7 @@ find_timezone(char * tz) {
     // quicker than two loops or slower?
     for (i=0; i < sz_timezones  ; i++) {
 	if (strcmp(timezones[i], tz) == 0) {
-	    strcpy(tz1, timezones[i]);
+	    strncpy(tz1, timezones[i], BUFLEN);
 	    return;
 	}
     }
@@ -89,7 +89,7 @@ find_timezone(char * tz) {
     if (regcomp(&compiled, tz, REG_ICASE|REG_EXTENDED|REG_NOSUB) != 0) {
 	// regex compilation failed, probably because tz (argv) string is not a valid regex
 	if (!suppress)
-	    printf("\nSearch failed: %s is an invalid regex\n", tz);
+	    printf("Search failed: %s is an invalid regex\n", tz);
 	exit(2);
     }
     // search for regex match on array of timezones
@@ -99,17 +99,17 @@ find_timezone(char * tz) {
 	    // regex match found, so print the matching timezone
 	    // if this is the first one found, copy it to buffer for possible re-use
 	    if (++found == 1)
-		strcpy(buf, timezones[i]);
+		strncpy(buf, timezones[i], BUFLEN);
 	    if (!suppress)
 		printf("%s\n",timezones[i]);
 	}
     }
     if (!found && !suppress) {
-	printf("\nNo candidates found. Try searching with a shorter string or an extended regex.\n");
+	printf("No candidates found. Try searching with a shorter string or an extended regex.\n");
     }
     if (found == 1) {
 	// found only one possible candidate, so use it
-	strcpy(tz1,buf);		    // use tz1, main() will switch if necessary
+	strncpy(tz1, buf, BUFLEN);		    // use tz1, main() will switch if necessary
 	imperfect_match |= 1;		    // set imperfect if not already
 	return; 
     }
@@ -158,7 +158,7 @@ int main (int argc, char **argv)
 	    // timezone time timezone supplied
 	    // find timezone in reverse order so tz1 and tz2 are set up correctly
 	    find_timezone(argv[3]);
-	    strcpy(tz2, tz1);
+	    strncpy(tz2, tz1, BUFLEN);
 	    find_timezone(argv[1]);
 	    setenv(tz, tz1, OVERWRITE);
 	    tzset();
