@@ -3,6 +3,12 @@ Timezone Converter
 
 Display time converted from one timezone to another timezone, with daylight saving handled automatically.
 
+Command line options:
+    -s	suppress all messages except for the time.  Possible use is for scripts that don't care about 
+	warnings or errors.
+	This flag means an invalid timezone or regex will result in no output.  The return value can be tested
+	to detect this.
+
 Input either:
     timezone			Local machine's localtime is converted to that timezone; or
     timezone time timezone	The time in the first timezone is converted to the second timezone; or
