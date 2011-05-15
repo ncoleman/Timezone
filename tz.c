@@ -4,52 +4,24 @@
  * 
  * Display time converted from one timezone to another timezone.
  * 
+ * See README for full documentation.
+ *
  * Input either:
  *     timezone			Local machine's localtime is converted to that timezone; or
  *     timezone time timezone	The time in the first timezone is converted to the second timezone; or
  *     regex			Timezones are searched using the regex (which can be a simple string).	
- * 
- * Input Format:
- *     timezone in the format of the /usr/share/zoneinfo directory structure (e.g.
- * 	Australia/Sydney, Europe/Rome, Zulu, Israel), or an extended regex.  If the regex
- * 	matches only one timezone from the internal list, that timezone is
- * 	susbstituted automatically on the basis that the user should not have to retype
- * 	it again.  The return value can be used to detect if this substitution has
- * 	occurred.
- * 	The timezone is case-sensitive, but the regex search is case-insensitive.  
- * 	This lets you do quick data entry of "paris" since the regex search
- * 	will substitute the correct value of Europe/Paris.
- * 	The regex does partial matches automatically.  You don't need to specify ".*foo.*",
- * 	foo will work fine.
- *     time in either of two strftime formats (which can be changed in #define in the source code):
- * 	"%Y-%m-%d %H:%M" or %Y%m%d%H%M (the second for quick and dirty typing, 
- * 	sacrificing legibility).
- * 
- * Output:
- *     formatted string of the time; or
- *     list of possible candidate timezones.
  * 
  * Return value:
  *     0	timezone(s) match exactly (perfect match) with the internal list; no errors
  *     1	at least one of the timezones was substituted because there was only one 
  * 	match in the internal list (i.e. imperfect match); no errors
  *     2	an error occurred: too many timezone candidates to automatically choose one, time format wrong, regex invalid.
- * 
- * Usage:
- *     tz paris
- *     tz "s(aint)?_"
- *     tz Europe/Rome
- *     tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
- *     tz Australia/Sydney 201105061928 America/New_York
- *
- *  Remarks:
- *	Concept based on http://stackoverflow.com/questions/2413418/how-to-programatically-convert-a-time-from-one-timezone-to-another-in-c
  *
  *  Licence:
  *	MIT-style licence (see below for particulars).  Copyright 2011 Nick Coleman 
  *	
  *  Compilation:
- *	cc -o tz tz.c timezones.c	
+ *	cc -Wall -O2 -o tz tz.c timezones.c	
  *
 */
 
@@ -62,6 +34,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <regex.h>
+#include <unistd.h>
 
 
 /* Change the time formats to whatever you desire here.  You can use two formats for input.
@@ -81,6 +54,7 @@ char buf[BUFLEN];				    // general purpose
 char tz1[BUFLEN];				    // for first timezone string
 char tz2[BUFLEN];				    // for second timezone string
 int imperfect_match = 0;			    // flag to indicate a regex substitution occurred
+int suppress = 0;				    // flag to suppress "is the only candidate so using it" msg
 
 
 /*
@@ -107,10 +81,12 @@ find_timezone(char * tz) {
     }
     // only get to here if timezone was not found
     // print error msg
-    printf("%s timzezone not found.  Possible candidates:", tz);
+    if (!suppress)
+	printf("%s timzezone not found.  Possible candidates:", tz);
     if (regcomp(&compiled, tz, REG_ICASE|REG_EXTENDED|REG_NOSUB) != 0) {
 	// regex compilation failed, probably because tz (argv) string is not a valid regex
-	printf("\nSearch failed: %s is an invalid regex\n", tz);
+	if (!suppress)
+	    printf("\nSearch failed: %s is an invalid regex\n", tz);
 	exit(2);
     }
     // search for regex match on array of timezones
@@ -121,15 +97,15 @@ find_timezone(char * tz) {
 	    // if this is the first one found, copy it to buffer for possible re-use
 	    if (++found == 1)
 		strcpy(buf, timezones[i]);
-	    printf("\n%s",timezones[i]);
+	    if (!suppress)
+		printf("\n%s",timezones[i]);
 	}
     }
-    if (!found) {
+    if (!found && !suppress) {
 	printf("\nNo candidates found. Try searching with a shorter string or an extended regex.");
     }
     if (found == 1) {
 	// found only one possible candidate, so use it
-	printf(" is the only candidate, so using it.\n");
 	strcpy(tz1,buf);		    // use tz1, main() will switch if necessary
 	imperfect_match |= 1;		    // set imperfect if not already
 	return; 
@@ -145,13 +121,30 @@ int main (int argc, char *argv[])
     struct tm mytm = {0};
     time_t mytime_t;
     const char *const tz = "TZ";
-
     mytm.tm_isdst = -1;
+
+    extern char *optarg;
+    extern int opterr;
+    extern int optind;
+    extern int optopt;
+    extern int optreset;
+    int ch;
+    // using if instead of while since we only need one flag (S overrides s)
+    if ((ch=getopt(argc, argv, "s")) != -1) {
+	switch(ch) {
+	    case 's':
+		suppress = 1;
+		argc--;
+		argv++;
+		break;
+	}
+    }
 
     switch (argc) {
 	case 1:
 	    // no input, print error msg and exit
-	    puts("Need at least one timezone.\nExample:\nAsia/Tokyo\tor\nEurope/Paris \"2011-01-01 12:00\" America/New_York\nTo find a timezone, use a regex.");
+	    if (!suppress)
+		puts("Need at least one timezone.\nExample:\nAsia/Tokyo\tor\nEurope/Paris \"2011-01-01 12:00\" America/New_York\nTo find a timezone, use a regex.");
 	    exit(2);
 	case 2:
 	    // single timezone supplied
@@ -172,7 +165,8 @@ int main (int argc, char *argv[])
 		// failed, try second format
 		if (strptime(argv[2], TIMEFMTINP2, &mytm) == NULL) {
 		    // still failed, error msg and exit.
-		    printf("Time format not valid.\nShould be (see man 3 strftime): %s or %s\n", TIMEFMTINP1, TIMEFMTINP2);
+		    if (!suppress)
+			printf("Time format not valid.\nShould be (see man 3 strftime): %s or %s\n", TIMEFMTINP1, TIMEFMTINP2);
 		    exit(2);
 		}
 	    }
@@ -181,7 +175,8 @@ int main (int argc, char *argv[])
 	    break;
 	default:
 	    // unknown gibberish supplied
-	    puts("Invalid number of arguments.  Need <timezone> [<datetime> <timezone>]");
+	    if (!suppress)
+		puts("Invalid number of arguments.  Need <timezone> [<datetime> <timezone>]");
 	    exit(2);
     }
     // do the actual timezone conversion
