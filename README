@@ -1,7 +1,7 @@
 Timezone Converter
 ==================
 
-Display time converted from one timezone to another timezone.
+Display time converted from one timezone to another timezone, with daylight saving handled automatically.
 
 Input either:
     timezone			Local machine's localtime is converted to that timezone; or
@@ -35,6 +35,8 @@ Return value:
     2	an error occurred: too many timezone candidates to automatically choose one, time format wrong, regex invalid.
 
 Usage:
+    tz paris
+    tz "s(aint)?_"
     tz Europe/Rome
     tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
     tz Australia/Sydney 201105061928 America/New_York
