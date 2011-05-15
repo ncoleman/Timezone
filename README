@@ -9,10 +9,11 @@ Command line options:
 	This flag means that an invalid timezone or regex will result in no output.  The return value can be
 	tested to detect this.
 
-Input either:
+Input:
     timezone			the local machine's localtime is converted to that timezone; or
     timezone time timezone	the time in the first timezone is converted to the second timezone; or
-    regex			the internal list of timezones is searched using the regex (which can be a simple string).	
+    regex			the internal list of timezones is searched using the regex
+				(which can be a simple string).	
 
 Input Format:
     timezone in the format of the /usr/share/zoneinfo directory structure (e.g.
