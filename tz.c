@@ -2,7 +2,7 @@
  * Timezone Converter
  * ==================
  * 
- * Display time converted from one timezone to another timezone.
+ * Display time converted from one timezone to another timezone, with daylight saving handled automatically.
  * 
  * See README for full documentation.
  *
@@ -14,7 +14,7 @@
  * Return value:
  *     0	timezone(s) match exactly (perfect match) with the internal list; no errors
  *     1	at least one of the timezones was substituted because there was only one 
- * 	match in the internal list (i.e. imperfect match); no errors
+ *		match in the internal list (i.e. imperfect match); no errors
  *     2	an error occurred: too many timezone candidates to automatically choose one, time format wrong, regex invalid.
  *
  *  Licence:
@@ -38,9 +38,9 @@
 
 
 /* Change the time formats to whatever you desire here.  You can use two formats for input.
- * I set up format 1 for strict formatting, and format 2 for loose, unreadable but quick typing.
+ * I have set up format 1 for strict formatting, and format 2 for loose, unreadable but quick typing.
  */
-// Time format that user shall input
+// Input time formats
 #define TIMEFMTINP1 "%Y-%m-%d %H:%M"
 #define TIMEFMTINP2 "%Y%m%d%H%M"
 // Output time format
@@ -54,12 +54,13 @@ char buf[BUFLEN];				    // general purpose
 char tz1[BUFLEN];				    // for first timezone string
 char tz2[BUFLEN];				    // for second timezone string
 int imperfect_match = 0;			    // flag to indicate a regex substitution occurred
-int suppress = 0;				    // flag to suppress "is the only candidate so using it" msg
+int suppress = 0;				    // flag to suppress any warning or error messages
 
 
 /*
  * Check a timezone for validity, displaying a list of possible candidates if not found.
- * In that case, the function exits the program since no further progress is possible.
+ * In that case, the function exits the program with appropriate error code set, 
+ * since no further progress is possible.
  *
  * Returns with timezone in buf[] if perfect match or one possible match, doesn't return
  * if multiple or no match.
@@ -73,6 +74,8 @@ find_timezone(char * tz) {
     extern const int sz_timezones;
     regex_t compiled;
     // check if the supplied timezone string is found and return if it is
+    // TODO NJC 05/15/11  perhaps merge this loop with the next one. Is malloc() (to hold timezones found so far)
+    // quicker than two loops or slower?
     for (i=0; i < sz_timezones  ; i++) {
 	if (strcmp(timezones[i], tz) == 0) {
 	    strcpy(tz1, timezones[i]);
@@ -115,7 +118,7 @@ find_timezone(char * tz) {
 }
 
 
-int main (int argc, char *argv[])
+int main (int argc, char **argv)
 {
     struct tm mytm = {0};
     time_t mytime_t;
