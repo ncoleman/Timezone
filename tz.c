@@ -82,7 +82,7 @@ find_timezone(char * tz) {
     // only get to here if timezone was not found
     // print error msg
     if (!suppress)
-	printf("%s timzezone not found.  Possible candidates:", tz);
+	printf("%s timzezone not found.  Possible candidates:\n", tz);
     if (regcomp(&compiled, tz, REG_ICASE|REG_EXTENDED|REG_NOSUB) != 0) {
 	// regex compilation failed, probably because tz (argv) string is not a valid regex
 	if (!suppress)
@@ -98,11 +98,11 @@ find_timezone(char * tz) {
 	    if (++found == 1)
 		strcpy(buf, timezones[i]);
 	    if (!suppress)
-		printf("\n%s",timezones[i]);
+		printf("%s\n",timezones[i]);
 	}
     }
     if (!found && !suppress) {
-	printf("\nNo candidates found. Try searching with a shorter string or an extended regex.");
+	printf("\nNo candidates found. Try searching with a shorter string or an extended regex.\n");
     }
     if (found == 1) {
 	// found only one possible candidate, so use it
@@ -110,7 +110,6 @@ find_timezone(char * tz) {
 	imperfect_match |= 1;		    // set imperfect if not already
 	return; 
     }
-    printf("\n");
     // only get to here if timezone was not found nor substituted
     exit(2);
 }
