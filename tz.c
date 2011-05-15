@@ -62,7 +62,7 @@ int suppress = 0;				    // flag to suppress any warning or error messages
  * In that case, the function exits the program with appropriate error code set, 
  * since no further progress is possible.
  *
- * Returns with timezone in buf[] if perfect match or one possible match, doesn't return
+ * Returns with timezone in tz1[] if perfect match or one possible match, doesn't return
  * if multiple or no match.
  *
  */
