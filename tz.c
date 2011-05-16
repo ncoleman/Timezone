@@ -50,9 +50,9 @@
 #define OVERWRITE 1
 #define BUFLEN 100
 
-char buf[BUFLEN];				    // general purpose
-char tz1[BUFLEN];				    // for first timezone string
-char tz2[BUFLEN];				    // for second timezone string
+char buf[BUFLEN] = "\0";			    // general purpose
+char tz1[BUFLEN] = "\0";			    // for first timezone string
+char tz2[BUFLEN] = "\0";			    // for second timezone string
 int imperfect_match = 0;			    // flag to indicate a regex substitution occurred
 int suppress = 0;				    // flag to suppress any warning or error messages
 
@@ -110,7 +110,7 @@ find_timezone(char * tz) {
     if (found == 1) {
 	// found only one possible candidate, so use it
 	strncpy(tz1, buf, BUFLEN);		    // use tz1, main() will switch if necessary
-	imperfect_match |= 1;		    // set imperfect if not already
+	imperfect_match |= 1;			    // set imperfect if not already
 	return; 
     }
     // only get to here if timezone was not found nor substituted
@@ -123,7 +123,10 @@ int main (int argc, char **argv)
     struct tm mytm = {0};
     time_t mytime_t;
     const char *const tz = "TZ";
+    char tmfmtout[BUFLEN] = "\0";
+
     mytm.tm_isdst = -1;
+    strncpy(tmfmtout, TIMEFMTOUT, BUFLEN);
 
     extern char *optarg;
     extern int opterr;
@@ -132,40 +135,46 @@ int main (int argc, char **argv)
     extern int optreset;
     int ch;
     // using if instead of while since we only need one flag (S overrides s)
-    if ((ch=getopt(argc, argv, "s")) != -1) {
+    while ((ch=getopt(argc, argv, "sf:")) != -1) {
 	switch(ch) {
+	    case '?':
+		printf("Invalid option or missing argument\n");
+		exit(2);
 	    case 's':
 		suppress = 1;
-		argc--;
-		argv++;
+		break;
+	    case 'f':
+		strncpy(tmfmtout, argv[optind - 1], BUFLEN);
 		break;
 	}
     }
+    argc -= optind;
+    argv += optind;
 
     switch (argc) {
-	case 1:
+	case 0:
 	    // no input, print error msg and exit
 	    if (!suppress)
 		puts("Need at least one timezone.\nExample:\nAsia/Tokyo\tor\nEurope/Paris \"2011-01-01 12:00\" America/New_York\nTo find a timezone, use a regex.");
 	    exit(2);
-	case 2:
+	case 1:
 	    // single timezone supplied
-	    find_timezone(argv[1]);
+	    find_timezone(argv[0]);
 	    time(&mytime_t);	// localtime on this machine
 	    setenv(tz, tz1, OVERWRITE);
 	    break;
-	case 4:
+	case 3:
 	    // timezone time timezone supplied
 	    // find timezone in reverse order so tz1 and tz2 are set up correctly
-	    find_timezone(argv[3]);
+	    find_timezone(argv[2]);
 	    strncpy(tz2, tz1, BUFLEN);
-	    find_timezone(argv[1]);
+	    find_timezone(argv[0]);
 	    setenv(tz, tz1, OVERWRITE);
 	    tzset();
 	    // try first format time input string
-	    if (strptime(argv[2], TIMEFMTINP1 , &mytm) == NULL) {
+	    if (strptime(argv[1], TIMEFMTINP1 , &mytm) == NULL) {
 		// failed, try second format
-		if (strptime(argv[2], TIMEFMTINP2, &mytm) == NULL) {
+		if (strptime(argv[1], TIMEFMTINP2, &mytm) == NULL) {
 		    // still failed, error msg and exit.
 		    if (!suppress)
 			printf("Time format not valid.\nShould be (see man 3 strftime): %s or %s\n", TIMEFMTINP1, TIMEFMTINP2);
@@ -184,7 +193,7 @@ int main (int argc, char **argv)
     // do the actual timezone conversion
     tzset();
     localtime_r(&mytime_t, &mytm);
-    strftime(buf, BUFLEN, TIMEFMTOUT, &mytm);
+    strftime(buf, BUFLEN, tmfmtout, &mytm);
     puts(buf);
 
     return imperfect_match;				    // 0 is no substitutions, 1 is at least one substitution

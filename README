@@ -2,12 +2,15 @@ Timezone Converter
 ==================
 
 Display time converted from one timezone to another timezone, with daylight saving handled automatically.
+The input time can default to local time, or can be entered in either of two formats.  
+The format of the output time can be chosen using the -f option, or will default to a full featured string.
 
 Command line options:
     -s	suppress all messages except for the time.  Possible use is for scripts that don't care about 
 	warnings or errors.
 	This flag means that an invalid timezone or regex will result in no output.  The return value can be
 	tested to detect this.
+    -f	"xxxx"	Custom time output using strftime formatting.  See man 3 strftime.
 
 Input:
     timezone			the local machine's localtime is converted to that timezone; or
@@ -18,13 +21,12 @@ Input:
 Input Format:
     timezone in the format of the /usr/share/zoneinfo directory structure (e.g.
 	Australia/Sydney, Europe/Rome, Zulu, Israel), or an extended regex.  If the regex
-	matches only one timezone from the internal list, that timezone is
-	susbstituted automatically on the basis that the user should not have to retype
-	it again.  The return value can be used to detect if this substitution has
-	occurred.
-	The timezone is case-sensitive, but the regex search is case-insensitive.  
-	This lets you do quick data entry of "paris" since the regex search
-	will substitute the correct value of Europe/Paris.
+	matches only one timezone from the internal list, that timezone is susbstituted 
+	automatically on the basis that the user should not have to retype it again.  The 
+	return value can be used to detect if this substitution has occurred.
+	The timezone is case-sensitive, but the regex search is case-insensitive.  This 
+	lets you do quick data entry of "paris" since the regex search will substitute 
+	the correct value of Europe/Paris.
 	The regex does partial matches automatically.  You don't need to specify ".*foo.*",
 	foo will work fine.
     time in either of two strftime formats (which can be changed in #define in the source code):
@@ -47,6 +49,7 @@ Usage:
     tz Europe/Rome
     tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
     tz Australia/Sydney 201105061928 America/New_York
+    tz -f "%H:%M" Europe/Paris
 
 Examples:
     Normal:
@@ -56,6 +59,8 @@ Examples:
 	    Sat, 30 Oct 2004 00:30:00 -0400 (EDT)
 	$ tz Australia/Sydney 201105061928 America/New_York
 	    Fri, 06 May 2011 05:28:00 -0400 (EDT)
+	$ tz -f "%H:%M" Europe/Paris
+	    05:51
     Substitution:
 	$ tz paris
 	    "paris" timezone not found.  Possible candidates:
