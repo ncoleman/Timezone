@@ -6,6 +6,13 @@
  * 
  * See README for full documentation.
  *
+ * Command line options:
+ *     -s	    Suppress all messages except for the datetime.  Possible use is for scripts that don't 
+ *		    care about warnings or errors.
+ *		    This flag means that an invalid timezone or regex will result in no output.  
+ *		    The return value can be tested to detect this.
+ *     -f "xxxx"    Customised output using strftime formatting.  See man 3 strftime.
+ *
  * Input either:
  *     timezone			Local machine's localtime is converted to that timezone; or
  *     timezone time timezone	The time in the first timezone is converted to the second timezone; or
