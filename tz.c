@@ -134,7 +134,6 @@ int main (int argc, char **argv)
     extern int optopt;
     extern int optreset;
     int ch;
-    // using if instead of while since we only need one flag (S overrides s)
     while ((ch=getopt(argc, argv, "sf:")) != -1) {
 	switch(ch) {
 	    case '?':

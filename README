@@ -2,36 +2,55 @@ Timezone Converter
 ==================
 
 Display time converted from one timezone to another timezone, with daylight saving handled automatically.
-The input time can default to local time, or can be entered in either of two formats.  
-The format of the output time can be chosen using the -f option, or will default to a full featured string.
+The input time can default to local time, or can be entered in either of two formats.  The format of 
+the output time can be specified using the -f option, or default to a full featured string.
+
+Timezones are checked against an internal list.  A (extended) regex can be used to search for a timezone.
+If a timezone is not a perfect match against the internal list, but is so close that there is only one
+possible valid candidate (e.g. paris = Europe/Paris), that candidate is automatically substituted.  A warning
+message is displayed.  If there are multiple possible candidates, they are listed and the program exits.
+
+The time to be converted can be entered in two possible formats (which can be changed in the source code--
+see the #defines near the top): "YYYY-MM-DD HH:MM" or YYYYMMDDHHMM.
+
+All warning and error messages can be suppressed with the -s command line option.
+
+The output time format defaults to "%a, %d %b %Y %H:%M:%S %z (%Z)", or can be specified on the command line
+with the -f option.
 
 Command line options:
-    -s	suppress all messages except for the time.  Possible use is for scripts that don't care about 
-	warnings or errors.
-	This flag means that an invalid timezone or regex will result in no output.  The return value can be
-	tested to detect this.
-    -f	"xxxx"	Custom time output using strftime formatting.  See man 3 strftime.
+
+    -s		Suppress all messages except for the datetime.  Possible use is for scripts that don't 
+		care about warnings or errors.
+		This flag means that an invalid timezone or regex will result in no output.  
+		The return value can be tested to detect this.
+
+    -f	"xxxx"	Customised output using strftime formatting.  See man 3 strftime.
 
 Input:
+
     timezone			the local machine's localtime is converted to that timezone; or
+
     timezone time timezone	the time in the first timezone is converted to the second timezone; or
+
     regex			the internal list of timezones is searched using the regex
 				(which can be a simple string).	
 
-Input Format:
-    timezone in the format of the /usr/share/zoneinfo directory structure (e.g.
-	Australia/Sydney, Europe/Rome, Zulu, Israel), or an extended regex.  If the regex
-	matches only one timezone from the internal list, that timezone is susbstituted 
-	automatically on the basis that the user should not have to retype it again.  The 
-	return value can be used to detect if this substitution has occurred.
-	The timezone is case-sensitive, but the regex search is case-insensitive.  This 
-	lets you do quick data entry of "paris" since the regex search will substitute 
-	the correct value of Europe/Paris.
-	The regex does partial matches automatically.  You don't need to specify ".*foo.*",
-	foo will work fine.
-    time in either of two strftime formats (which can be changed in #define in the source code):
-	"%Y-%m-%d %H:%M" or %Y%m%d%H%M (the second for quick and dirty typing, 
-	sacrificing legibility).
+Input Formats:
+    timezone	in the format of the /usr/share/zoneinfo directory structure
+		(e.g.  Australia/Sydney, Europe/Rome, Zulu, Israel), or an extended regex.  If
+		the regex matches only one timezone from the internal list, that timezone is
+		susbstituted automatically on the basis that the user should not have to retype
+		it again.  The return value can be used to detect if this substitution has
+		occurred.  The timezone is case-sensitive, but the regex search is
+		case-insensitive.  This lets you do quick data entry of "paris" since the regex
+		search will substitute the correct value of Europe/Paris.  The regex does
+		partial matches automatically.  You don't need to specify ".*foo.*", foo
+		will work fine.
+
+    time	in either of two strftime formats (which can be changed in #define in the 
+		source code): "%Y-%m-%d %H:%M" or %Y%m%d%H%M (the second for quick and dirty
+		typing, sacrificing legibility).
 
 Output:
     formatted string of the time; or
@@ -50,6 +69,7 @@ Usage:
     tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
     tz Australia/Sydney 201105061928 America/New_York
     tz -f "%H:%M" Europe/Paris
+    tz -s -f %H%M paris 201105150130 sydney
 
 Examples:
     Normal:
@@ -61,6 +81,7 @@ Examples:
 	    Fri, 06 May 2011 05:28:00 -0400 (EDT)
 	$ tz -f "%H:%M" Europe/Paris
 	    05:51
+
     Substitution:
 	$ tz paris
 	    "paris" timezone not found.  Possible candidates:
@@ -76,6 +97,10 @@ Examples:
 	    Fri, 13 May 2011 09:30:00 +0200 (CEST)
 	$ echo $?
 	  1
+	(Below is the same example with messages suppressed and with custom output time format)
+	$ tz -s -f %H:%M paris "2011-05-13 9:30" rome
+	    09:30
+
     Not found:
 	$ tz par
 	    "par" timezone not found.  Possible candidates:
@@ -83,6 +108,7 @@ Examples:
 	    Europe/Paris
 	$ echo $?
 	  2
+
     Using a regex:
 	$ tz "s(ain)?t_"
 	    "s(ain)?t_" timezone not found.  Possible candidates:
