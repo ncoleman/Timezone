@@ -121,6 +121,8 @@ Examples:
 	    Atlantic/St_Helena
 
 Compilation:
+    make
+    or, to compile manually:
     cc tz.c timezones.c -O2 -o tz
 
     The timezones.c file is almost certainly correct for a unix-like

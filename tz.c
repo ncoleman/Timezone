@@ -29,6 +29,8 @@
  *	
  *  Compilation:
  *	cc -Wall -O2 -o tz tz.c timezones.c	
+ *	OR
+ *	make
  *
 */
 
