@@ -11,7 +11,7 @@
  *		    care about warnings or errors.
  *		    This flag means that an invalid timezone or regex will result in no output.  
  *		    The return value can be tested to detect this.
- *     -f "xxxx"    Customised output using strftime formatting.  See man 3 strftime.
+ *     -f "xxxx"    Format customised output using strftime formatting.  See man 3 strftime.
  *
  * Input either:
  *     timezone			Local machine's localtime is converted to that timezone; or
