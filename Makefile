@@ -2,7 +2,7 @@ CC = cc
 CFLAGS = -Wall -O2 -c
 LDFLAGS =
 SOURCES = tz.c timezones.c
-EXECUTABLE = tz
+EXECUTABLE = tzconvert
 OBJECTS = $(SOURCES:.c=.o)
 
 all: $(SOURCES) $(EXECUTABLE)
