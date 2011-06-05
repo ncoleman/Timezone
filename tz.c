@@ -28,8 +28,6 @@
  *	MIT-style licence (see below for particulars).  Copyright 2011 Nick Coleman 
  *	
  *  Compilation:
- *	cc -Wall -O2 -o tz tz.c timezones.c	
- *	OR
  *	make
  *
 */
@@ -163,7 +161,7 @@ int main (int argc, char **argv)
 	case 0:
 	    // no input, print error msg and exit
 	    if (!suppress)
-		puts("Need at least one timezone.\nExample:\nAsia/Tokyo\tor\nEurope/Paris \"2011-01-01 12:00\" America/New_York\nTo find a timezone, use a regex.");
+		puts("Need at least one timezone.\n");
 	    exit(2);
 	case 1:
 	    // single timezone supplied
