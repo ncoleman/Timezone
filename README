@@ -63,33 +63,33 @@ Return value:
     2	an error occurred: too many timezone candidates to automatically choose one, time format wrong, regex invalid.
 
 Usage:
-    tz paris
-    tz "s(aint)?_"
-    tz Europe/Rome
-    tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
-    tz Australia/Sydney 201105061928 America/New_York
-    tz -f "%H:%M" Europe/Paris
-    tz -s -f %H%M paris 201105150130 sydney
+    tzconvert paris
+    tzconvert "s(aint)?_"
+    tzconvert Europe/Rome
+    tzconvert "Europe/Paris" "2004-10-30 06:30" "America/New_York"
+    tzconvert Australia/Sydney 201105061928 America/New_York
+    tzconvert -f "%H:%M" Europe/Paris
+    tzconvert -s -f %H%M paris 201105150130 sydney
 
 Examples:
     Normal:
-	$ tz Europe/Rome
+	$ tzconvert Europe/Rome
 	    Thu, 12 May 2011 06:57:09 +0200 (CEST)
-	$ tz "Europe/Paris" "2004-10-30 06:30" "America/New_York"
+	$ tzconvert "Europe/Paris" "2004-10-30 06:30" "America/New_York"
 	    Sat, 30 Oct 2004 00:30:00 -0400 (EDT)
-	$ tz Australia/Sydney 201105061928 America/New_York
+	$ tzconvert Australia/Sydney 201105061928 America/New_York
 	    Fri, 06 May 2011 05:28:00 -0400 (EDT)
-	$ tz -f "%H:%M" Europe/Paris
+	$ tzconvert -f "%H:%M" Europe/Paris
 	    05:51
 
     Substitution:
-	$ tz paris
+	$ tzconvert paris
 	    "paris" timezone not found.  Possible candidates:
 	    Europe/Paris
 	    Fri, 13 May 2011 05:46:01 +0200 (CEST)
 	$ echo $?
 	  1
-	$ tz paris "2011-05-13 9:30" rome
+	$ tzconvert paris "2011-05-13 9:30" rome
 	    "rome" timezone not found.  Possible candidates:
 	    Europe/Rome
 	    "paris" timezone not found.  Possible candidates:
@@ -98,11 +98,11 @@ Examples:
 	$ echo $?
 	  1
 	(Below is the same example with messages suppressed and with custom output time format)
-	$ tz -s -f %H:%M paris "2011-05-13 9:30" rome
+	$ tzconvert -s -f %H:%M paris "2011-05-13 9:30" rome
 	    09:30
 
     Not found:
-	$ tz par
+	$ tzconvert par
 	    "par" timezone not found.  Possible candidates:
 	    America/Paramaribo
 	    Europe/Paris
@@ -110,7 +110,7 @@ Examples:
 	  2
 
     Using a regex:
-	$ tz "s(ain)?t_"
+	$ tzconvert "s(ain)?t_"
 	    "s(ain)?t_" timezone not found.  Possible candidates:
 	    America/St_Barthelemy
 	    America/St_Johns
@@ -123,7 +123,7 @@ Examples:
 Compilation:
     make
     or, to compile manually:
-    cc tz.c timezones.c -O2 -o tz
+    cc tz.c timezones.c -O2 -o tzconvert
 
     The timezones.c file is almost certainly correct for a unix-like
     system, including Linux.  If you have to generate the entries in
